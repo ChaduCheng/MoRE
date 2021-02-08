@@ -446,33 +446,13 @@ def train(args):
     model = model.to(device)
     
     ### load pretrained model
-    
-    # model_loc0 = './trained_model/ckptnat_resnet18_cifar.pth'
-    # model_loc1 = './trained_model/ckptnat_resnet18_cifar_0.1_lu_l2_40_255.pth'
-    # model_loc2 = './trained_model/ckptnat_resnet18_cifar_0.1_lu_l2_60_255.pth'
-    # #model_loc2 = './trained_model/ckpt_resnet_cifar_l2_60_5_255_.pth'
-    # model_loc4 = './trained_model/ckptnat_resnet18_cifar_0.1_lu_linf_4_255.pth'
-    # model_loc4 = './trained_model/ckptnat_resnet18_cifar_0.1_lu_linf_6_255.pth'
-    #model_loc4 = './trained_model/ckpt_resnet_cifar_linf_6_5_255_.pth'
-    # model_loc5 = './trained_model/ckptl2_alexnet_cifar_90_255.pth'
-    # model_loc6 = './trained_model/ckptl2_alexnet_cifar_100_255.pth'
-    # model_loc7 = './trained_model/ckptl2_alexnet_cifar_110_255.pth'
-    # model_loc8 = './trained_model/ckptlinf_alexnet_cifar_5_255.pth'
-    # model_loc9 = './trained_model/ckptlinf_alexnet_cifar_6_255.pth'
-    # model_loc10 = './trained_model/ckptlinf_alexnet_cifar_7_255.pth'
-    # model_loc11 = './trained_model/ckptlinf_alexnet_cifar_8_255.pth'
-    # model_loc12 = './trained_model/ckptlinf_alexnet_cifar_9_255.pth'
-    # model_loc13 = './trained_model/ckptlinf_alexnet_cifar_10_255.pth'
-    # model_loc14 = './trained_model/ckptlinf_alexnet_cifar_11_255.pth'
-   #  model_loc3 = './trained_model/ckptl2_alex_cifar_50.pth'
-
 
     model_loc0 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_tsave.pth'
 
-    model_loc1 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_l2_40*5_255.pth'
-    model_loc2 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_l2_60*5_255.pth'
-    model_loc3 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_linf_4*5_255.pth'
-    model_loc4 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_linf_6*5_255.pth'
+    model_loc1 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_l2_40_255.pth'
+    model_loc2 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_l2_60_255.pth'
+    model_loc3 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_linf_4_255.pth'
+    model_loc4 = '../cifar_clean_train_resnet/checkpoint/ckptnat_resnet18_cifar_0.1_lu_linf_6_255.pth'
     
    # #  print(model)
    # # # print(model.state_dict())
@@ -487,16 +467,6 @@ def train(args):
     utils.load_model(model_loc2, model.experts[2])
     utils.load_model(model_loc3, model.experts[3])
     utils.load_model(model_loc4, model.experts[4])
-    # utils.load_model(model_loc5, model.experts[5])
-    # utils.load_model(model_loc6, model.experts[6])
-    # utils.load_model(model_loc7, model.experts[7])
-    # utils.load_model(model_loc8, model.experts[5])
-    # utils.load_model(model_loc9, model.experts[6])
-    # utils.load_model(model_loc10, model.experts[7])
-    # utils.load_model(model_loc11, model.experts[8])
-    # utils.load_model(model_loc12, model.experts[12])
-    # utils.load_model(model_loc13, model.experts[13])
-    # utils.load_model(model_loc14, model.experts[14])
     
     
     #utils.load_model(model_loc1, model)
@@ -567,58 +537,7 @@ def train(args):
         
        
 
-        # for images, labels in train_loader:
-        #     #j = j + 1
-            
-        #     #print('processing image No.:', j)
-        #     #images, labels = utils.cuda([images, labels], args.gpu_ids)
-        #     #images, labels = images.to(device), labels.to(device)
-            
-        #     #print(images)
-            
-        #     net_attack = AttackPGD(basic_model,config_linf)
-            
-        #     #print(net_attack)
-            
-        #     net_attack = net_attack.to(device)
-        #     images = images.to(device)
-        #     labels = labels.to(device)
-        #     #print(images.device)
-        #     # images.cuda(args.gpu_ids[0])
-        #     # labels.cuda(args.gpu_ids[0])
-        #     #print(images)
-        #     #print(images.shape)
-        #     #print(type(images))
-            
-        #     images_att = net_attack(images,labels, attack)
-            
-        #    # print(images_att)
-            
-        #    # print(images_att-images)
-            
-        #     #print('processing image:' images)
-        #     #model = model.to(device)
-        #     #print(model.device)
-
-        #     optimizer.zero_grad()
-        #     prediction = model(images_att)
-            
-        #     #print('prediction value is :', prediction )
-
-        #     loss = CE_loss(prediction, labels)
-        #     # print('loss value is :', loss )
-        #     loss.backward()
-
-        #     optimizer.step()
-
-        # correct_1 = 0
-        
-        # correct_2 = 0
-        
-        # correct_3 = 0
-        
-        #if i%10 == 0:
-            #a = 0
+       
 
         model.eval()
         correct_final_nat = 0
@@ -865,27 +784,4 @@ def test(args):
         print('Epoch: ', i + 1, ' Done!!  average Accuracy: ', (acc_nat * 2 + sum(acc_l2) + sum(acc_linf)) / 6)
         print('Epoch: ', i + 1, '  Best average  Accuracy: ', best_acc_aver)
 
-        # for images, labels in val_loader:
-
-        #     #a = a+1
-        #     net_attack = AttackPGD(basic_model,config_linf)
-
-        #     #print(net_attack)
-
-        #     net_attack = net_attack.to(device)
-        #     #print('processing testing image:', a)
-        #     #images, labels = utils.cuda([images, labels], args.gpu_ids)
-        #     images = images.to(device)
-        #     labels = labels.to(device)
-
-        #     images_att = net_attack(images,labels, attack)
-
-        #     prediction = model(images_att)
-        #     pred = prediction.argmax(dim=1, keepdim=True)
-        #     correct_3 = pred.eq(labels.view_as(pred)).sum().item()
-        #     #correct_final.append(correct)
-        #     correct_final_3 = correct_final_3 + correct_3
-
-        # acc = correct_final_3 / len(val_loader.dataset)
-
-    # torch.save(model.state_dict(), args.checkpoint_loc)
+       
