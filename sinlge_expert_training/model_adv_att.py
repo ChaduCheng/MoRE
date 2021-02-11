@@ -15,41 +15,6 @@ from torchvision import datasets, transforms, models
 import utils
 
 num_classes = 10
-
-
-
-
-
-def project(x, original_x, epsilon, _type='linf'):
-
-    if _type == 'linf':
-        max_x = original_x + epsilon
-        min_x = original_x - epsilon
-
-        x = torch.max(torch.min(x, max_x), min_x)
-
-    elif _type == 'l2':
-        dist = (x - original_x)
-
-        dist = dist.view(x.shape[0], -1)
-
-        dist_norm = torch.norm(dist, dim=1, keepdim=True)
-
-        mask = (dist_norm > epsilon).unsqueeze(2).unsqueeze(3)
-
-        # dist = F.normalize(dist, p=2, dim=1)
-
-        dist = dist / dist_norm
-
-        dist *= epsilon
-
-        dist = dist.view(x.shape)
-
-        x = (original_x + dist) * mask.float() + x * (1 - mask.float())
-
-
-    return x
-
 class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
     def __init__(self, basic_net, config):
         super(AttackPGD, self).__init__()
@@ -94,6 +59,35 @@ class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
 
 
 
+# def project(x, original_x, epsilon, _type='linf'):
+
+#     if _type == 'linf':
+#         max_x = original_x + epsilon
+#         min_x = original_x - epsilon
+
+#         x = torch.max(torch.min(x, max_x), min_x)
+
+#     elif _type == 'l2':
+#         dist = (x - original_x)
+
+#         dist = dist.view(x.shape[0], -1)
+
+#         dist_norm = torch.norm(dist, dim=1, keepdim=True)
+
+#         mask = (dist_norm > epsilon).unsqueeze(2).unsqueeze(3)
+
+#         # dist = F.normalize(dist, p=2, dim=1)
+
+#         dist = dist / dist_norm
+
+#         dist *= epsilon
+
+#         dist = dist.view(x.shape)
+
+#         x = (original_x + dist) * mask.float() + x * (1 - mask.float())
+
+
+#     return x
 
 # # Model
 # class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
