@@ -8,13 +8,13 @@ Created on Tue Aug 11 19:23:17 2020
 from attack_steps import L2Step, LinfStep
 import torch
 import torch.nn as nn
-import numpy as np
-import torchvision
-import torch.nn.functional as F
-from torchvision import datasets, transforms, models
-import utils
+# import numpy as np
+# import torchvision
+# import torch.nn.functional as F
+# from torchvision import datasets, transforms, models
+# import utils
 
-num_classes = 10
+# num_classes = 10
 class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
     def __init__(self, basic_net, config):
         super(AttackPGD, self).__init__()
