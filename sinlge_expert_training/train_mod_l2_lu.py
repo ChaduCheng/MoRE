@@ -152,7 +152,7 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
             print('saving..')
             
             state = {
-            'net': model.state_dict(),
+            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
             'acc_clean': acc_nat,
             'acc_l2': acc_l2,
             'acc_linf': acc_linf,
@@ -170,27 +170,58 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
 
 
 
+
 def train(args):
     
-    config_linf = {
-    'epsilon': 4.0  / 255 ,
-    #'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'linf'
-     }
-    
-    config_l2 = {
-    'epsilon': 40  / 255,
-    #'epsilon': 0.314 * 5,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'l2'
-     }
+
+    #region setting
+    if args.heavy == 1: 
+        config_linf = {
+        'epsilon': 8.0  / 255 ,
+        'num_steps': 20,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'linf'
+        }
+
+        config_l2 = {
+        'epsilon': 1.0,
+        'num_steps': 20,
+        # 'step_size': 2.0 / 255,
+        'step_size': 1.0 / 5,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l2'
+        }
+    else:
+        config_linf = {
+        'epsilon': 6.0  / 255 ,
+        'num_steps': 20,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'linf'
+        }
+        config_l2 = {
+        'epsilon': 0.5,
+        'num_steps': 20,
+        'step_size': 0.5 / 5,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l2'
+        }
+    import os
+    dir = args.out_dir
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    args.checkpoint_loc = '{}{}_{}.pt'.format(dir,'l2',config_l2['epsilon'])
+    print(args.checkpoint_loc)
+    #endregion
+
+
     
     attack = 'true'
 
@@ -223,7 +254,9 @@ def train(args):
     model = ResNet18()
 
     model = model.to(device)
-    
+    if args.resume:
+        utils.load_model(args.checkpoint_loc, model)
+        print("loaded model!")
 
     if device == 'cuda':
         model = torch.nn.DataParallel(model)
@@ -330,7 +363,7 @@ def val_clean(val_loader, device, model, correct_final, best_acc, checkpoint_loc
             print('saving..')
             
             state = {
-            'net': model.state_dict(),
+            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
             'acc': acc,
             #'epoch': epoch,
             }
@@ -370,7 +403,7 @@ def val_adv(val_loader, device, model,  basic_model, AttackPGD, config, attack, 
             print('saving..')
             
             state = {
-            'net': model.state_dict(),
+            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
             'acc': acc,    #zhu ming type
             #'epoch': epoch,
             }
