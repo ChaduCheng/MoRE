@@ -265,9 +265,9 @@ testset = torchvision.datasets.CIFAR10(
 trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=128, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=args.num_runs, shuffle=False, num_workers=2)
+    testset, batch_size=args.num_runs, shuffle=True, num_workers=2)
 testloader2 = torch.utils.data.DataLoader(
-    testset, batch_size=128, shuffle=False, num_workers=2)
+    testset, batch_size=128, shuffle=True, num_workers=2)
 images,labels = next(iter(testloader))
 test(model,testloader2)
 # load sampled images or sample new ones

@@ -15,17 +15,17 @@ parser.add_argument('--resume', '-r', default = True, type=bool, help='resume fr
 parser.add_argument('--batch_size', '-bs',type=int,  default =2,help='batch size')
 parser.add_argument("--model_path", "-p", type=str, default=None)
 parser.add_argument("--norm", "-n", type=str, default=None)
-parser.add_argument('--epsilon', '-e',type=int,default=None)
+parser.add_argument('--epsilon', '-e',type=float,default=None)
 parser.add_argument('--iteration', '-i',type=int,default =-1)
 parser.add_argument('--stop_image_at', '-st',type=int,default=-1)
 parser.add_argument('--multiple','-m',type=float, default=1)
-parser.add_argument('--early_stop', '-es', default = False, type=bool, help='resume from checkpoint')
+parser.add_argument('--early_stop', '-es', default = True, type=bool)
 args = parser.parse_args()
 if args.iteration == -1:
     args.iteration = int(3*32*32*args.multiple)
 # if args.stop_image_at == -1:
     # args.stop_image_at == int(float("inf"))
-if 1:
+if 0:
     args.model_path = './checkpoint/ckptnat_resnet18_cifar_tsave.pth' 
     args.norm='l2' 
     args.epsilon = 60 * 3072
@@ -57,9 +57,10 @@ def project(new_input,orig_input, eps,norm):
     elif norm =="linf":
         return linf_project(new_input,orig_input,eps)
     else:
-        NotImplementedError
+        raise Exception("not implemented p norm.")
 def normalize(x):
-    return utils.apply_normalization(x, 'cifar')
+    return x
+    # return utils.apply_normalization(x, 'cifar')
 
 def get_probs(model, x, y):
     model=model.to(device)
@@ -136,15 +137,15 @@ def test(net,testloader):
 
         print( 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-trainset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=utils.CIFAR_TRANSFORM)
-trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
+# trainset = torchvision.datasets.CIFAR10(
+#     root='./data', train=True, download=True, transform=utils.CIFAR_TRANSFORM)
+# trainloader = torch.utils.data.DataLoader(
+#     trainset, batch_size=args.batch_size, shuffle=True, num_workers=2)
 
 testset = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=utils.CIFAR_TRANSFORM)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
 from resnet import ResNet18
 net = ResNet18()
 if device == 'cuda':
@@ -162,6 +163,7 @@ if args.resume:
     net.load_state_dict(checkpoint['net'])
     # best_acc = checkpoint['acc']
     # start_epoch = checkpoint['epoch']
+    print("load the model from path "+args.model_path)
 net = net.to(device)
 
 
@@ -219,4 +221,5 @@ def test2(net,testloader):
             if  args.early_stop and (batch_idx+1 >= stop_at):
                 break
         print( 'Loss: %.3f | Acc: %.3f%% (%d/%d)' % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+test(net,testloader)
 test2(net,testloader)
