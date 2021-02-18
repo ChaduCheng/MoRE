@@ -57,7 +57,7 @@ def write_str_to_file(string, text_file):
     text_file = open(text_file, "a+")
     text_file.write(str(string) + "\n")
     text_file.close()
-def save_print(content,directory='./logs_l2_2/',path = name+datetime.now().strftime("%m%d%Y_%H%M%S.txt")):
+def save_print(content,directory='./logs_l2_4/',path = name+datetime.now().strftime("%m%d%Y_%H%M%S.txt")):
     if not os.path.exists(directory):
         os.makedirs(directory)
     print(content)
@@ -242,7 +242,8 @@ if not os.path.exists(args.sampled_image_dir):
 from resnet import ResNet18
 # model = getattr(models, args.model)(pretrained=True).cuda()
 model = ResNet18().cuda()
-checkpoint = torch.load('./checkpoint/ckptnat_resnet18_cifar_tsave.pth')
+path = args.model_path
+checkpoint = torch.load(path)
 model.load_state_dict(checkpoint['net'])
 model.eval()
 
