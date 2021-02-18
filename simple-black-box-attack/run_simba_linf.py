@@ -19,7 +19,7 @@ parser.add_argument('--data_root', type=str, default='./data', help='root direct
 parser.add_argument('--result_dir', type=str, default='./save', help='directory for saving results')
 parser.add_argument('--sampled_image_dir', type=str, default='./save', help='directory to cache sampled images')
 parser.add_argument('--model', type=str, default='resnet18', help='type of base model to use')
-parser.add_argument('--num_runs', type=int, default=1000, help='number of image samples')
+parser.add_argument('--num_runs', type=int, default=500, help='number of image samples')
 parser.add_argument('--batch_size', type=int, default=500, help='batch size for parallel runs')
 parser.add_argument('--num_iters', type=int, default=0, help='maximum number of iterations, 0 for unlimited')
 parser.add_argument('--log_every', type=int, default=10, help='log every n iterations')
@@ -57,7 +57,7 @@ def write_str_to_file(string, text_file):
     text_file.write(str(string) + "\n")
     text_file.close()
 name = "linf_attack_"+ "m:"+str(args.model_select)+ "_v:"+str(args.heavy)+ "_p:"+ str(args.pixel_attack)+"_"
-def save_print(content,directory='./logs_linf_2/',path = name + datetime.now().strftime("%m%d%Y_%H%M%S.txt")):
+def save_print(content,directory='./logs_linf_5/',path = name + datetime.now().strftime("%m%d%Y_%H%M%S.txt")):
     if not os.path.exists(directory):
         os.makedirs(directory)
     print(content)
@@ -107,7 +107,8 @@ def expand_vector(x, size):
     return z
 
 def normalize(x):
-    return utils.apply_normalization(x, 'cifar')
+    return x 
+    # return utils.apply_normalization(x, 'cifar')
 
 def get_probs(model, x, y):
     output = model(normalize(torch.autograd.Variable(x.cuda()))).cpu()
