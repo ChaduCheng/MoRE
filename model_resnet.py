@@ -193,7 +193,6 @@ class MoE_ResNet18(nn.Module):
         return sum(out_final), weights_aver    ### out will have the shape [batch_size, output_dim]
         #return sum(out_final)    ### out will have the shape [batch_size, output_dim]
 
-
 class MoE_ResNet18_test(nn.Module):
     def __init__(self, num_experts, output_dim):
         super(MoE_ResNet18_test, self).__init__()
@@ -231,7 +230,7 @@ class MoE_ResNet18_test(nn.Module):
         return sum(out_final)  ### out will have the shape [batch_size, output_dim]
         # return sum(out_final)    ### out will have the shape [batch_size, output_dim]
 
-        class MoE_ResNet18_adv(nn.Module):
+class MoE_ResNet18_adv(nn.Module):
     def __init__(self, num_experts, output_dim):
         super(MoE_ResNet18_adv, self).__init__()
         self.num_experts = num_experts
