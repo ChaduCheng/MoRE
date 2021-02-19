@@ -231,6 +231,43 @@ class MoE_ResNet18_test(nn.Module):
         return sum(out_final)  ### out will have the shape [batch_size, output_dim]
         # return sum(out_final)    ### out will have the shape [batch_size, output_dim]
 
+        class MoE_ResNet18_adv(nn.Module):
+    def __init__(self, num_experts, output_dim):
+        super(MoE_ResNet18_adv, self).__init__()
+        self.num_experts = num_experts
+        self.output_dim = output_dim
+        self.softmax = nn.Softmax()
+
+        self.experts = nn.ModuleList([ResNet18_expert(output_dim) for i in range(num_experts)])
+
+        self.gating = ResNet18(num_experts)
+
+    def forward(self, x):
+        out_final = []
+        weights = self.softmax(self.gating(x))  ### Outputs a tensor of [batch_size, num_experts]
+        # print(x)
+        # print(len(x))
+        # print(x.shape)
+        # print(weights)
+        # print(len(weights))
+        # print(weights.shape)
+        out = torch.zeros([weights.shape[0], self.output_dim])
+        for i in range(self.num_experts):
+            # out += weights[:, i].unsqueeze(1) * self.experts[i](x)    ### To get the output of experts weighted by the appropriate gating weight
+            out = weights[:, i].unsqueeze(1) * self.experts[i](x)
+
+            # print('out is :', out)
+
+            out_final.append(out)
+
+            # print('all out are:' , out_final)
+
+            # print('size of out:', len(out_final))
+
+        #weights_aver = torch.mean(weights, dim=0, keepdim=True)
+        return sum(out_final)  ### out will have the shape [batch_size, output_dim]
+        # return sum(out_final)    ### out will have the shape [batch_size, output_dim]
+
 
 def test():
     net = ResNet18()
