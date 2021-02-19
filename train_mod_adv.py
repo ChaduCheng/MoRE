@@ -318,91 +318,48 @@ def testing(val_loader, device, model, basic_model, AttackPGD, config_l2, config
 
 def train(args):
     
-    config_linf_4 = {
-    'epsilon': 4.0  / 255,
-    #'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'linf'
-     }
     config_linf_6 = {
-    'epsilon': 6.0  / 255,
-    #'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'linf'
-     }
-    config_linf_7 = {
-    'epsilon': 7.0 / 255,
-    #'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'linf'
-     }
+        'epsilon': 6.0 / 255,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'linf'
+    }
     config_linf_8 = {
-    'epsilon': 8.0 / 255,
-    #'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'linf'
-     }
+        'epsilon': 8.0 / 255,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'linf'
+    }
 
-    config_linf = dict(config_linf_4 = config_linf_4, config_linf_6 = config_linf_6)
+    config_linf = dict(config_linf_6 = config_linf_6, config_linf_8 = config_linf_8)
 
-    config_l2_40 = {
-    #'epsilon': 8.0 / 255,
-    'epsilon': 40  / 255,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'l2'
-     }
-    
-    config_l2_60 = {
-    #'epsilon': 8.0 / 255,
-    'epsilon': 60  / 255,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'l2'
-     }
-    
-    config_l2_70 = {
-    #'epsilon': 8.0 / 255,
-    'epsilon': 70 / 255,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'l2'
-     }
-    
+    config_l2_1_2 = {
+        'epsilon': 0.5,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.5 / 5,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l2'
+    }
+    config_l2_1 = {
+        'epsilon': 1.0,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 1.0 / 5,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l2'
+    }
 
-
-    
-    config_l2_80 = {
-    #'epsilon': 8.0 / 255,
-    'epsilon': 0.314,
-    'num_steps': 10,
-    'step_size': 2.0 / 255,
-    'random_start': True,
-    'loss_func': 'xent',
-    '_type': 'l2'
-     }
-
-    
-    
     config_l2 = dict(config_l2_40 = config_l2_40, config_l2_60 = config_l2_60)
+   
     attack = 'true'
 
     if args.dataset == 'cifar':
@@ -440,8 +397,8 @@ def train(args):
     basic_model =  basic_model.to(device)
     #print(output_classes.device)
     #model = MoE(basic_model, output_classes, output_classes)
-    model = MoE_ResNet18(args.num_experts, output_classes)
-    model_adv = MoE_ResNet18_test(args.num_experts, output_classes)
+#     model = MoE_ResNet18(args.num_experts, output_classes)
+    model = MoE_ResNet18_adv(args.num_experts, output_classes)
 
     model = model.to(device)
     
@@ -516,11 +473,11 @@ def train(args):
                 
         # train_adv(train_loader, device, optimizer, basic_model, model, AttackPGD ,CE_loss,config_linf, attack)
 
-        weights_nat = train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, i)
+#         weights_nat = train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, i)
         
         print('nat training weights', weights_nat)
 
-        weights_linf = train_adv(train_loader, device, optimizer, model_adv, model, AttackPGD ,CE_loss,config_linf, attack, lr_schedule, i)
+        weights_linf = train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_linf, attack, lr_schedule, i)
         
         print('after linf training weights(final):', weights_linf) 
 
@@ -531,7 +488,7 @@ def train(args):
         
         #train_clean (train_loader, device,optimizer,model,CE_loss)
         
-        weights_l2 = train_adv(train_loader, device, optimizer, model_adv, model, AttackPGD ,CE_loss,config_l2, attack, lr_schedule, i)
+        weights_l2 = train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_l2, attack, lr_schedule, i)
         
         print('l2 training weights', weights_l2)     
         
@@ -546,7 +503,7 @@ def train(args):
 
         
         
-        acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = val(test_loader, device, model,  model_adv, AttackPGD, config_l2, config_linf, attack,\
+        acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = val(test_loader, device, model,  model, AttackPGD, config_l2, config_linf, attack,\
         correct_final_nat, best_acc_nat, correct_final_l2, best_acc_l2, correct_final_linf,\
             best_acc_linf, best_acc_aver, args.checkpoint_loc)
         
@@ -603,86 +560,47 @@ def train(args):
 
 
 def test(args):
-    config_linf_4 = {
-        'epsilon': 4.0 / 255,
-        # 'epsilon': 0.314,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'linf'
-    }
     config_linf_6 = {
         'epsilon': 6.0 / 255,
-        # 'epsilon': 0.314,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'linf'
-    }
-    config_linf_7 = {
-        'epsilon': 7.0 / 255,
-        # 'epsilon': 0.314,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'linf'
     }
     config_linf_8 = {
         'epsilon': 8.0 / 255,
-        # 'epsilon': 0.314,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.01,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'linf'
     }
 
-    config_linf = dict(config_linf_4=config_linf_4, config_linf_6=config_linf_6)
+    config_linf = dict(config_linf_6=config_linf_6, config_linf_8=config_linf_8)
 
-    config_l2_40 = {
-        # 'epsilon': 8.0 / 255,
-        'epsilon': 40 / 255,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
+    config_l2_1_2 = {
+        'epsilon': 0.5,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 0.5 / 5,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l2'
+    }
+    config_l2_1 = {
+        'epsilon': 1.0,
+        'num_steps': 7,
+        # 'step_size': 2.0 / 255,
+        'step_size': 1.0 / 5,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
     }
 
-    config_l2_60 = {
-        # 'epsilon': 8.0 / 255,
-        'epsilon': 60 / 255,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'l2'
-    }
-
-    config_l2_70 = {
-        # 'epsilon': 8.0 / 255,
-        'epsilon': 70 / 255,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'l2'
-    }
-
-    config_l2_80 = {
-        # 'epsilon': 8.0 / 255,
-        'epsilon': 0.314,
-        'num_steps': 10,
-        'step_size': 2.0 / 255,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'l2'
-    }
-
-    config_l2 = dict(config_l2_40=config_l2_40, config_l2_60=config_l2_60)
+    config_l2 = dict(config_l2_1_2=config_l2_1_2, config_l2_60=config_l2_1)
     attack = 'true'
 
     if args.dataset == 'cifar':
@@ -717,7 +635,7 @@ def test(args):
     basic_model = basic_model.to(device)
     # print(output_classes.device)
     # model = MoE(basic_model, output_classes, output_classes)
-    model = MoE_ResNet18_test(args.num_experts, output_classes)
+    model = MoE_ResNet18_adv(args.num_experts, output_classes)
 
     model = model.to(device)
     utils.load_model(args.checkpoint_loc, model)
