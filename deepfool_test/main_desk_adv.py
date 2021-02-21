@@ -22,19 +22,19 @@ def get_args():
     args.epochs = 1
     args.dataset = 'cifar'
     args.batch_size = 1
-    args.train_split = 0.05
+    args.train_split = 0.05  ##select some parts of data
     args.lr = 0.1
     args.gpu_ids = '0'
     # args.checkpoint_loc = '../cifar_16_resenet/checkpoint/ckptMoE_resnet_cifar_clean+4adv_final_ensure_noclean.pth'
-    args.checkpoint_loc = '../cifar_16_resenet/checkpoint/ckptMoE_resnet_cifar_clean+4adv+4nat_final_ensure.pth'
+    args.checkpoint_loc = '../cifar_16_resenet/checkpoint/ckptMoE_resnet_cifar_clean+4adv+4nat_final_ensure.pth'  ##model
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4nat.pth'
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4adv_adaptive.pth'
     #args.checkpoint_loc = './trained_model/ckptl2_alex_cifar_50.pth'
     args.num_experts = 9
     args.training = False
     args.testing = True
-    args.norm = '2'
-    args.epsilon = 1.0
+    args.norm = '2' ## attack norm
+    args.epsilon = 1.0  ##eps
     # args.tr       aining = False
     # args.testing = True
     return args
@@ -42,10 +42,10 @@ def get_args():
 def main():
     args = get_args()
     
-    if args.training:
-        train(args)
-    if args.testing:
-        test_deepfool(args)
+#     if args.training:
+#         train(args)
+#     if args.testing:
+    test_deepfool(args)
 
 
 if __name__ == '__main__':
