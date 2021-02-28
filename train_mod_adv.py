@@ -631,11 +631,11 @@ def test(args):
     CE_loss = nn.CrossEntropyLoss()
     # jiang LeNet dan du chan fen le chu lai
     # model =  LeNet(output_classes)
-    basic_model = ResNet18(output_classes)
-    basic_model = basic_model.to(device)
+    model = ResNet18(output_classes)
+#     basic_model = basic_model.to(device)
     # print(output_classes.device)
     # model = MoE(basic_model, output_classes, output_classes)
-    model = MoE_ResNet18_adv(args.num_experts, output_classes)
+#     model = MoE_ResNet18_adv(args.num_experts, output_classes)
 
     model = model.to(device)
     utils.load_model(args.checkpoint_loc, model)
