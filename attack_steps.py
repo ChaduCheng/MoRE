@@ -159,6 +159,40 @@ class L2Step(AttackerStep):
         return ch.clamp(x + self.eps * rp / (rp_norm + 1e-10), 0, 1)
 
 
+# L1 threat model
+class L1Step(AttackerStep):
+    """
+    Attack step for :math:`\ell_\infty` threat model. Given :math:`x_0`
+    and :math:`\epsilon`, the constraint set is given by:
+    .. math:: S = \{x | \|x - x_0\|_2 \leq \epsilon\}
+    """
+
+    def project(self, x):
+        """
+        """
+        diff = x - self.orig_input
+        diff = diff.renorm(p=1, dim=0, maxnorm=self.eps)
+        return ch.clamp(self.orig_input + diff, 0, 1)
+
+    def step(self, x, g):
+        """
+        """
+        l = len(x.shape) - 1
+        # g_norm = ch.norm(g.view(g.shape[0], -1).abs(), dim=1).view(-1, *([1] * l))   # dim=1 compute do norm in one image
+        g_norm = ch.sum(g.view(g.shape[0], -1).abs(), dim=1).view(-1, *([1] * l))   # dim=1 compute do norm in one image
+        scaled_g = g / (g_norm + 1e-10)
+        return x + scaled_g * self.step_size
+
+    def random_perturb(self, x):
+        """
+        """
+        l = len(x.shape) - 1
+        rp = ch.randn_like(x)
+        rp_norm = rp.view(rp.shape[0], -1).abs().sum(dim=1).view(-1, *([1] * l))  # first norm and then to be 4 dimensions
+        return ch.clamp(x + self.eps * rp / (rp_norm + 1e-10), 0, 1)
+    
+    
+    
 # Unconstrained threat model
 class UnconstrainedStep(AttackerStep):
     """
