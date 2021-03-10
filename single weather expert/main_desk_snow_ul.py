@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 #from testing import validation
 from train_mod_snow_ul import train
-from tests import test
+# from tests import test
 
 
 def get_args():
@@ -26,25 +26,21 @@ def get_args():
     args.checkpoint_loc = './checkpoint/ckptn_resnet18_cifar_snow_bright_20_change.pth'
     #args.checkpoint_loc = './trained_model/ckptl2_alex_cifar_50.pth'
     args.num_experts = 3
-    args.training = True
-    args.testing = False
+#     args.training = True
+#     args.testing = False
     # args.training = False
     # args.testing = True
     return args
 
 def main():
     args = get_args()
-    # str_ids = args.gpu_ids.split(',')
-    # args.gpu_ids = []
-    # for str_id in str_ids:
-    #     id = int(str_id)
-    #     if id >= 0:
-    #         args.gpu_ids.append(id)
+    train(args)
+
     
-    if args.training:
-        train(args)
-    if args.testing:
-        test(args)
+#     if args.training:
+    
+#     if args.testing:
+#         test(args)
 
 
 if __name__ == '__main__':
