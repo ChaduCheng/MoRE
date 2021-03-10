@@ -259,7 +259,7 @@ def train(args):
 
     if args.dataset == 'cifar':
         output_classes = 10
-    if args.dataset == 'tinyimagenet':
+    elif args.dataset == 'tinyimagenet':
         output_classes = 200
         
     global best_acc_nat, best_acc_l1, best_acc_linf

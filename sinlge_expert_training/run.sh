@@ -15,5 +15,5 @@ CUDA_VISIBLE_DEVICES=2 python main_desk_linf_lu.py -v 0 --dataset tinyimagenet
 CUDA_VISIBLE_DEVICES=3 python main_desk_linf_lu.py -v 1 --dataset tinyimagenet 
 CUDA_VISIBLE_DEVICES=0 python main_desk_lu.py --dataset tinyimagenet 
 
-CUDA_VISIBLE_DEVICES=0 python main_desk_l1_lu.py -v 0 
-CUDA_VISIBLE_DEVICES=1 python main_desk_l1_lu.py -v 1 
+CUDA_VISIBLE_DEVICES=2 python main_desk_l1_lu.py -v 0 --dataset tinyimagenet 
+CUDA_VISIBLE_DEVICES=3 python main_desk_l1_lu.py -v 1 --dataset tinyimagenet 

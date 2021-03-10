@@ -70,7 +70,7 @@ class ResNet(nn.Module):
         self.in_planes = 64
         if num_classes == 10:
             self.in_features = 512
-        if num_classes == 200:
+        elif num_classes == 200:
             self.in_features = 2048
         else:
             raise Exception("please specify num classes")       
