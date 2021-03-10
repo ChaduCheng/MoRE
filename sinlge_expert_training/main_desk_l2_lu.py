@@ -2,13 +2,13 @@ import os
 from argparse import ArgumentParser
 #from testing import validation
 from train_mod_l2_lu import train
-from tests import test
+# from tests import test
 
 
 def get_args():
     parser = ArgumentParser(description='Mixture of Experts')
     # parser.add_argument('--epochs', type=int, default=100)
-    # parser.add_argument('--dataset', type=float, default='mnist')
+    parser.add_argument('--dataset',type=str, default='cifar')
     # parser.add_argument('--batch_size', type=int, default=8)
     # parser.add_argument('--train_split', type=float, default=0.8)
     # parser.add_argument('--lr', type=float, default=.001)
@@ -21,10 +21,13 @@ def get_args():
     parser.add_argument('--resume','-r', type=bool, default=False)
     parser.add_argument('--heavy','-v', type=int, default=None)
     args = parser.parse_args()
+    DEBUG = 0
+    if DEBUG:
+        args.heavy = 0
     if args.heavy is None:
         raise Exception("not implemented")
     args.epochs = 200
-    args.dataset = 'cifar'
+    # args.dataset = 'cifar'
     args.batch_size = 128
     args.train_split = 0.8 
     args.lr = 0.1

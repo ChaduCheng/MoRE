@@ -51,10 +51,8 @@ def train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, epoc
             
             a = a+1
 
-def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_loss,config,attack, lr_schedule, epoch_i):
-    print('doing linf training')
-    b = 0
-    for images, labels in tqdm(train_loader):
+def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_loss,config,attack):
+    for images, labels in train_loader:
             model.eval()
             basic_model.eval()
             
@@ -73,37 +71,26 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
             #print(type(images))
             
             images_att = net_attack(images,labels, attack)
+            
+
             model.train()
             basic_model.train()
+            optimizer.zero_grad()
 
-
-            #optimizer.zero_grad()
             prediction = model(images_att)
             
             #print('prediction value is :', prediction )
 
             loss = CE_loss(prediction, labels)
-
-            lr = lr_schedule(epoch_i + (b+1)/len(train_loader))
-            optimizer.param_groups[0].update(lr=lr)
-
-            optimizer.zero_grad()
             # print('loss value is :', loss )
             loss.backward()
 
             optimizer.step()
-            
-            b = b+1
 
 
 
 def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_linf, attack,\
         correct_final_nat, best_acc_nat, correct_final_l2, best_acc_l2, correct_final_linf, best_acc_linf, checkpoint_loc):
- 
-
-    acc_nat = 0
-    acc_l2 = 0
-    acc_linf =0
     
     for images, labels in tqdm(val_loader):
             
@@ -121,28 +108,28 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
             
     acc_nat = correct_final_nat / len(val_loader.dataset)
     
-    # for images, labels in tqdm(val_loader):
+    for images, labels in tqdm(val_loader):
             
-    #         #a = a+1
-    #         net_attack = AttackPGD(basic_model,config_l2)
+            #a = a+1
+            net_attack = AttackPGD(basic_model,config_l2)
             
-    #         #print(net_attack)
+            #print(net_attack)
             
-    #         net_attack = net_attack.to(device)
-    #         #print('processing testing image:', a)
-    #         #images, labels = utils.cuda([images, labels], args.gpu_ids)
-    #         images = images.to(device)
-    #         labels = labels.to(device)
+            net_attack = net_attack.to(device)
+            #print('processing testing image:', a)
+            #images, labels = utils.cuda([images, labels], args.gpu_ids)
+            images = images.to(device)
+            labels = labels.to(device)
             
-    #         images_att = net_attack(images,labels, attack)
+            images_att = net_attack(images,labels, attack)
 
-    #         prediction = model(images_att)
-    #         pred = prediction.argmax(dim=1, keepdim=True)
-    #         correct_2 = pred.eq(labels.view_as(pred)).sum().item()
-    #         #correct_final.append(correct)
-    #         correct_final_l2 = correct_final_l2 + correct_2
+            prediction = model(images_att)
+            pred = prediction.argmax(dim=1, keepdim=True)
+            correct_2 = pred.eq(labels.view_as(pred)).sum().item()
+            #correct_final.append(correct)
+            correct_final_l2 = correct_final_l2 + correct_2
         
-    # acc_l2 = correct_final_l2 / len(val_loader.dataset)
+    acc_l2 = correct_final_l2 / len(val_loader.dataset)
 
     for images, labels in tqdm(val_loader):
             
@@ -170,13 +157,13 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
     
     
     
-    if (acc_linf + acc_nat)/2.0 > best_acc_linf:
+    if acc_nat > best_acc_nat:
             print('saving..')
             
             state = {
-            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
+            'net': model.state_dict(),
             'acc_clean': acc_nat,
-            #'acc_l2': acc_l2,
+            'acc_l2': acc_l2,
             'acc_linf': acc_linf,
             #'epoch': epoch,
             }
@@ -185,8 +172,8 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
                 os.mkdir('checkpoint')
             torch.save(state, checkpoint_loc)
             best_acc_nat = acc_nat
-            #best_acc_l2 = acc_l2
-            best_acc_linf = (acc_linf + acc_nat)/2.0
+            best_acc_l2 = acc_l2
+            best_acc_linf = acc_linf
     
     return acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf
 
@@ -194,38 +181,17 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
 
 def train(args):
     
-    # config_linf = {
-    # 'epsilon': 6.0  / 255 ,
-    # #'epsilon': 0.314,
-    # 'num_steps': 10,
-    # 'step_size': 2.0 / 255,
-    # 'random_start': True,
-    # 'loss_func': 'xent',
-    # '_type': 'linf'
-    #  }
-    
-    # config_l2 = {
-    # #'epsilon': 8.0 / 255,
-    # 'epsilon': 0.314 ,
-    # 'num_steps': 10,
-    # 'step_size': 2.0 / 255,
-    # 'random_start': True,
-    # 'loss_func': 'xent',
-    # '_type': 'l2'
-    #  }
-    #region setting
-    if args.heavy == 1: 
-        config_linf = {
-        'epsilon': 8.0  / 255 ,
-        'num_steps': 7,
-        # 'step_size': 2.0 / 255,
-        'step_size': 0.01,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'linf'
-        }
+    config_linf = {
+    'epsilon': 6.0  / 255 ,
+    #'epsilon': 0.314,
+    'num_steps': 7,
+    'step_size': 0.01,
+    'random_start': True,
+    'loss_func': 'xent',
+    '_type': 'linf'
+     }
 
-        config_l2 = {
+    config_l2 = {
         'epsilon': 1.0,
         'num_steps': 7,
         # 'step_size': 2.0 / 255,
@@ -233,32 +199,7 @@ def train(args):
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
-        }
-    else:
-        config_linf = {
-        'epsilon': 6.0  / 255 ,
-        'num_steps': 7,
-        # 'step_size': 2.0 / 255,
-        'step_size': 0.01,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'linf'
-        }
-        config_l2 = {
-        'epsilon': 0.5,
-        'num_steps': 7,
-        'step_size': 2.5 * 0.5 / 7,
-        'random_start': True,
-        'loss_func': 'xent',
-        '_type': 'l2'
-        }
-    import os
-    dir = args.out_dir
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    args.checkpoint_loc = '{}{}_{}.pt'.format(dir,'linf',int(config_linf['epsilon']*255))
-    print(args.checkpoint_loc)
-    #endregion
+    }
 
     attack = 'true'
 
@@ -266,7 +207,7 @@ def train(args):
         output_classes = 10
     if args.dataset == 'tinyimagenet':
         output_classes = 200
-        
+
     global best_acc_nat, best_acc_l2, best_acc_linf
     best_acc_nat = 0
     best_acc_l2 = 0
@@ -279,8 +220,9 @@ def train(args):
     # operate this train_loader to generate new loader
     
     train_loader = DataLoader(dataset['train_data'], batch_size = args.batch_size, shuffle=True)
+    #val_loader = DataLoader(dataset['val_data'], batch_size = args.batch_size, shuffle=True)
     test_loader = DataLoader(dataset['test_data'], batch_size = args.batch_size, shuffle=True)
-    
+
 
     
     
@@ -293,11 +235,10 @@ def train(args):
     model = ResNet18(output_classes)
 
     model = model.to(device)
-    if args.resume:
-        utils.load_model(args.checkpoint_loc, model)
+    
 
     if device == 'cuda':
-        # model = torch.nn.DataParallel(model)
+        model = torch.nn.DataParallel(model)
         cudnn.benchmark = True
 
 
@@ -313,15 +254,15 @@ def train(args):
         
         lr = lr_schedule(i + (i+1)/args.batch_size)
         
-        #train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, i)
+        train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, i)
         
        # train_clean (train_loader, device,optimizer,model,CE_loss)
         
        # train_clean (train_loader, device,optimizer,model,CE_loss)
         
-        #train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_l2, attack, lr_schedule, i)
+        #train_adv(train_loader, device, optimizer, basic_model, model, AttackPGD ,CE_loss,config_l2, attack)
                 
-        train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_linf, attack, lr_schedule, i)
+        #train_adv(train_loader, device, optimizer, basic_model, model, AttackPGD ,CE_loss,config_linf, attack)
         
         
 
@@ -401,7 +342,7 @@ def val_clean(val_loader, device, model, correct_final, best_acc, checkpoint_loc
             print('saving..')
             
             state = {
-            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
+            'net': model.state_dict(),
             'acc': acc,
             #'epoch': epoch,
             }
@@ -441,7 +382,7 @@ def val_adv(val_loader, device, model,  basic_model, AttackPGD, config, attack, 
             print('saving..')
             
             state = {
-            'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
+            'net': model.state_dict(),
             'acc': acc,    #zhu ming type
             #'epoch': epoch,
             }

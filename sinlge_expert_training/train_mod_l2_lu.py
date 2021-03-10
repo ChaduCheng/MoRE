@@ -19,7 +19,7 @@ from torch import optim
 import torch.backends.cudnn as cudnn
 
 import utils
-from model_adv import AlexNet, MoE_alexnet
+# from model_adv import AlexNet, MoE_alexnet
 from model_adv_att import AttackPGD
 from model_resnet import *
 import string
@@ -55,8 +55,8 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
     print('doing l2 training')
     b = 0
     for images, labels in tqdm(train_loader):
-
-            
+            model.eval()
+            basic_model.eval()
             net_attack = AttackPGD(basic_model,config)
             
             #print(net_attack)
@@ -74,7 +74,8 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
             images_att = net_attack(images,labels, attack)
             
 
-
+            model.train()
+            basic_model.train()
             #optimizer.zero_grad()
             prediction = model(images_att)
             
@@ -170,15 +171,33 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
 
 
 
-
 def train(args):
     
+    # config_linf = {
+    # 'epsilon': 4.0  / 255 ,
+    # #'epsilon': 0.314,
+    # 'num_steps': 10,
+    # 'step_size': 2.0 / 255,
+    # 'random_start': True,
+    # 'loss_func': 'xent',
+    # '_type': 'linf'
+    #  }
+    
+    # config_l2 = {
+    # 'epsilon': 40  / 255,
+    # #'epsilon': 0.314 * 5,
+    # 'num_steps': 10,
+    # 'step_size': 2.0 / 255,
+    # 'random_start': True,
+    # 'loss_func': 'xent',
+    # '_type': 'l2'
+    #  }
 
     #region setting
     if args.heavy == 1: 
         config_linf = {
         'epsilon': 8.0  / 255 ,
-        'num_steps': 20,
+        'num_steps': 7,
         # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
@@ -188,9 +207,9 @@ def train(args):
 
         config_l2 = {
         'epsilon': 1.0,
-        'num_steps': 20,
+        'num_steps': 7,
         # 'step_size': 2.0 / 255,
-        'step_size': 1.0 / 5,
+        'step_size': 2.5 * 1.0 / 7,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
@@ -198,7 +217,7 @@ def train(args):
     else:
         config_linf = {
         'epsilon': 6.0  / 255 ,
-        'num_steps': 20,
+        'num_steps': 7,
         # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
@@ -207,8 +226,8 @@ def train(args):
         }
         config_l2 = {
         'epsilon': 0.5,
-        'num_steps': 20,
-        'step_size': 0.5 / 5,
+        'num_steps': 7,
+        'step_size': 2.5 * 0.5 / 7,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
@@ -222,11 +241,12 @@ def train(args):
     #endregion
 
 
-    
     attack = 'true'
 
     if args.dataset == 'cifar':
         output_classes = 10
+    if args.dataset == 'tinyimagenet':
+        output_classes = 200
         
     global best_acc_nat, best_acc_l2, best_acc_linf
     best_acc_nat = 0
@@ -251,7 +271,7 @@ def train(args):
     # jiang LeNet dan du chan fen le chu lai
     #model =  LeNet(output_classes)
     #model =  AlexNet(output_classes)
-    model = ResNet18()
+    model = ResNet18(output_classes)
 
     model = model.to(device)
     if args.resume:
@@ -259,7 +279,7 @@ def train(args):
         print("loaded model!")
 
     if device == 'cuda':
-        model = torch.nn.DataParallel(model)
+        # model = torch.nn.DataParallel(model)
         cudnn.benchmark = True
 
 
@@ -269,7 +289,7 @@ def train(args):
     lr_schedule = lambda t: np.interp([t], [0, args.epochs*2//5, args.epochs*4//5, args.epochs], [0, 0.1, 0.005, 0])[0]
 
     for i in range(args.epochs):
-        #model.train()
+        model.train()
         #j = 0
         print('The epoch number is: ' + str(i))
         

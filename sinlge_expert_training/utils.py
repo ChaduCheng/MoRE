@@ -24,16 +24,52 @@ def get_dataset(dataset ,transform = None, train_split=0.8):
         if transform == None:
             print('Specify a transformation function')
         
-        train_data = datasets.CIFAR10('./cifar', train=True, transform = transform['train_transform'], download=True)
-        # num_training_imgs = int(len(training_data) * train_split)
-        # torch.manual_seed(0)
-        # train_data, val_data = torch.utils.data.random_split(training_data, [num_training_imgs, len(training_data) - num_training_imgs])
+        training_data = datasets.CIFAR10('./cifar', train=True, transform = transform['train_transform'], download=True)
+        num_training_imgs = int(len(training_data) * train_split)
+        torch.manual_seed(0)
+        train_data, val_data = torch.utils.data.random_split(training_data, [num_training_imgs, len(training_data) - num_training_imgs])
 
         test_data = datasets.CIFAR10('./cifar', train=False, transform = transform['test_transform'], download=True)
 
         return {'train_data': train_data,
-                #'val_data': val_data,
+                'val_data': val_data,
                 'test_data': test_data}
+    if dataset == 'tinyimagenet':
+        import tiny_imagenet
+        trainset = tiny_imagenet.TinyImageNet200(root='./data', train= True, transform=transform['train_transform'],download=True)
+        # trainloader = torch.utils.data.DataLoader(trainset, batch_size=50, shuffle=True, num_workers=2)
+
+        testset = tiny_imagenet.TinyImageNet200(root='./data', train=False, transform=transform['test_transform'])
+        # testloader = torch.utils.data.DataLoader(testset, batch_size=25, shuffle=False, num_workers=2)
+
+        print( "trainset num = {}".format(len(trainset)) )
+        print( "trainloader num = {}".format(len(testset)) )
+        return {'train_data': trainset,
+                'val_data': testset,
+                'test_data': testset}
+    # if dataset == 'tinyimagenet':
+    #     import tinyprocess
+    #     return {'train_data': tinyprocess.train_dataset,
+    #             'val_data': tinyprocess.train_dataset,
+    #             }
+
+
+        # train_dir = '../tiny-imagenet-200/train'
+        # val_dir = '../tiny-imagenet-200/val'
+        # test_dir = '../tiny-imagenet-200/test'
+        # train_data = datasets.ImageFolder(train_dir, transform=transforms.ToTensor())
+        # val_data = datasets.ImageFolder(val_dir, transform=transforms.ToTensor())
+        # test_data = datasets.ImageFolder(test_dir, transform=transforms.ToTensor())
+        # # train_loader = torch.utils.data.DataLoader(train_data, batch_size=128)
+        # # val_loader = torch.utils.data.DataLoader(val_data, batch_size=128)
+        # # test_loader = torch.utils.data.DataLoader(test_data, batch_size=128)
+        # return {'train_data': train_data,
+        # 'val_data': val_data,
+        # 'test_data': test_data,
+        # # 'train_loader': train_loader,
+        # # 'val_loader': val_loader,
+        # # 'test_loader':test_loader
+        # }
 
 
 def get_transformation(dataset):
@@ -48,70 +84,55 @@ def get_transformation(dataset):
         #                                       transforms.ToTensor(),
         #                                       transforms.Normalize([0.485, 0.456, 0.406],
         #                                                            [0.229, 0.224, 0.225])])
-        # train_transform = transforms.Compose([#transforms.RandomResizedCrop(size=28),
-        #                                         #transforms.RandomCrop(32, padding=4),
-        #                                         #transforms.RandomHorizontalFlip(),
-        #                                         transforms.ToTensor(),
-        #                                         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
-                                                
-        #                                       ])
-
-        # test_transform = transforms.Compose([#transforms.Resize(size=28),
-        #                                         transforms.ToTensor(),
-        #                                         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
-        #                                       ])
-
         train_transform = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(.25,.25,.25),
-            transforms.RandomRotation(2),
-            transforms.ToTensor(),
-            #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        
-        test_transform = transforms.Compose([
-            transforms.ToTensor(),
-            #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
+                                                transforms.RandomCrop(32, padding=4),
+                                                transforms.RandomHorizontalFlip(),
+                                                transforms.ColorJitter(.25,.25,.25),
+                                                transforms.RandomRotation(2),
+                                                transforms.ToTensor(),
+                                              ])
 
+        test_transform = transforms.Compose([
+                                                transforms.ToTensor(),
+                                              ])
 
         transform = {'train_transform': train_transform,
+                    'val_transform': train_transform,
+                     'test_transform': test_transform}
+    if dataset=='tinyimagenet':
+
+        train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(size=64),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(.25,.25,.25),
+        transforms.RandomRotation(2),
+        transforms.ToTensor(),
+                                              ])
+
+        test_transform = transforms.Compose([
+        transforms.ToTensor(),
+                                              ])        
+        transform = {'train_transform': train_transform,
+                    'val_transform': train_transform,
                      'test_transform': test_transform}
 
     else:
-        print('Please choose the right dataset!!!')
+        raise Exception('Please choose the right dataset!!!')
 
     return transform
 
 
 def load_model(model_path, basic_net):
     checkpoint = torch.load(model_path)
-
+    
     #print(checkpoint)
-
-
+    
     #basic_net.load_state_dict(checkpoint['net'])
     basic_net.load_state_dict({k.replace('module.',''):v for k,v in checkpoint['net'].items()})
     best_acc_nat = checkpoint['acc_clean']
     best_acc_l2 = checkpoint['acc_l2']
-    best_acc_linf = checkpoint['acc_linf']
+    best_acc_linf = checkpoint['acc_linf']    
     return best_acc_nat, best_acc_l2, best_acc_linf
-    #return best_acc_nat, best_acc_linf
-
-
-def load_model_nat(model_path, basic_net):
-    checkpoint = torch.load(model_path)
-
-    # print(checkpoint)
-
-    # basic_net.load_state_dict(checkpoint['net'])
-    basic_net.load_state_dict({k.replace('module.', ''): v for k, v in checkpoint['net'].items()})
-    best_acc_clean = checkpoint['acc_clean']
-    best_acc_snow = checkpoint['acc_snow']
-    best_acc_fog = checkpoint['acc_fog']
-    return best_acc_clean, best_acc_snow, best_acc_fog
-    # return best_acc_nat, best_acc_linf
 
 def EM_loss():
     '''

@@ -5,6 +5,7 @@ Created on Tue Aug 11 19:23:17 2020
 
 @author: chad
 """
+
 from attack_steps import L2Step, LinfStep
 import torch
 import torch.nn as nn
@@ -15,6 +16,42 @@ import torch.nn as nn
 # import utils
 
 # num_classes = 10
+
+
+
+
+
+# def project(x, original_x, epsilon, _type='linf'):
+
+#     if _type == 'linf':
+#         max_x = original_x + epsilon
+#         min_x = original_x - epsilon
+
+#         x = torch.max(torch.min(x, max_x), min_x)
+
+#     elif _type == 'l2':
+#         dist = (x - original_x)
+
+#         dist = dist.view(x.shape[0], -1)
+
+#         dist_norm = torch.norm(dist, dim=1, keepdim=True)
+
+#         mask = (dist_norm > epsilon).unsqueeze(2).unsqueeze(3)
+
+#         # dist = F.normalize(dist, p=2, dim=1)
+
+#         dist = dist / dist_norm
+
+#         dist *= epsilon
+
+#         dist = dist.view(x.shape)
+
+#         x = (original_x + dist) * mask.float() + x * (1 - mask.float())
+
+
+#     return x
+
+# Model
 class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
     def __init__(self, basic_net, config):
         super(AttackPGD, self).__init__()
@@ -59,72 +96,30 @@ class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
 
 
 
-# def project(x, original_x, epsilon, _type='linf'):
+    # def forward(self, inputs, targets, attack):
+    #     if not attack:
+    #         return self.basic_net(inputs), inputs
 
-#     if _type == 'linf':
-#         max_x = original_x + epsilon
-#         min_x = original_x - epsilon
-
-#         x = torch.max(torch.min(x, max_x), min_x)
-
-#     elif _type == 'l2':
-#         dist = (x - original_x)
-
-#         dist = dist.view(x.shape[0], -1)
-
-#         dist_norm = torch.norm(dist, dim=1, keepdim=True)
-
-#         mask = (dist_norm > epsilon).unsqueeze(2).unsqueeze(3)
-
-#         # dist = F.normalize(dist, p=2, dim=1)
-
-#         dist = dist / dist_norm
-
-#         dist *= epsilon
-
-#         dist = dist.view(x.shape)
-
-#         x = (original_x + dist) * mask.float() + x * (1 - mask.float())
-
-
-#     return x
-
-# # Model
-# class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
-#     def __init__(self, basic_net, config):
-#         super(AttackPGD, self).__init__()
-#         self.basic_net = basic_net
-#         self.rand = config['random_start']
-#         self.step_size = config['step_size']
-#         self.epsilon = config['epsilon']
-#         self.num_steps = config['num_steps']
-#         self._type = config['_type']
-#         assert config['loss_func'] == 'xent', 'Only xent supported for now.'
-
-#     def forward(self, inputs, targets, attack):
-#         if not attack:
-#             return self.basic_net(inputs), inputs
-
-#         x = inputs.detach()
-#         if self.rand:     # attack here l_inf attack
-#             x = x + torch.zeros_like(x).uniform_(-self.epsilon, self.epsilon)
-#         for i in range(self.num_steps):
-#             x.requires_grad_()
-#             with torch.enable_grad():
-#                 logits = self.basic_net(x)
-#                 #loss = F.cross_entropy(logits, targets, size_average=False)
-#                 loss = F.cross_entropy(logits, targets, reduction='sum')
-#             grad = torch.autograd.grad(loss, [x])[0]
-#             x = x.detach() + self.step_size*torch.sign(grad.detach())
+    #     x = inputs.detach()
+    #     if self.rand:     # attack here l_inf attack
+    #         x = x + torch.zeros_like(x).uniform_(-self.epsilon, self.epsilon)
+    #     for i in range(self.num_steps):
+    #         x.requires_grad_()
+    #         with torch.enable_grad():
+    #             logits = self.basic_net(x)
+    #             #loss = F.cross_entropy(logits, targets, size_average=False)
+    #             loss = F.cross_entropy(logits, targets, reduction='sum')
+    #         grad = torch.autograd.grad(loss, [x])[0]
+    #         x = x.detach() + self.step_size*torch.sign(grad.detach())
            
-#            # normal l_infite
-#            # x = torch.min(torch.max(x, inputs - self.epsilon), inputs + self.epsilon)
+    #        # normal l_infite
+    #        # x = torch.min(torch.max(x, inputs - self.epsilon), inputs + self.epsilon)
             
-#             x = project(x, inputs, self.epsilon, self._type)
-#             x = torch.clamp(x, 0, 1)
+    #         x = project(x, inputs, self.epsilon, self._type)
+    #         x = torch.clamp(x, 0, 1)
 
-#         #return self.basic_net(x), x
-#         return x
+    #     #return self.basic_net(x), x
+    #     return x
 
 
 
