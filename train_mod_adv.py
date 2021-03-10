@@ -66,7 +66,7 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
         for images_adv, labels in tqdm(train_loader):
         #for images_adv, labels in train_loader:
     
-                
+                model.eval()
                 net_attack = AttackPGD(basic_model,config[i])
 
                 #net_attack = AttackPGD(model, config[i])
@@ -85,7 +85,7 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
                 
                 images_att = net_attack(images_adv,labels, attack)
                 
-    
+                model.train()
     
                 #optimizer.zero_grad()
                 prediction, weights = model(images_att)
@@ -458,7 +458,7 @@ def train(args):
 
 
     for i in range(args.epochs):
-        #model.train()
+        model.train()
         #j = 0
         print('The epoch number is: ' + str(i))
         
@@ -560,9 +560,14 @@ def train(args):
 
 
 def test(args):
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
     config_linf_6 = {
         'epsilon': 6.0 / 255,
-        'num_steps': 7,
+        'num_steps': 20,
         # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
@@ -571,7 +576,7 @@ def test(args):
     }
     config_linf_8 = {
         'epsilon': 8.0 / 255,
-        'num_steps': 7,
+        'num_steps': 20,
         # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
@@ -579,11 +584,12 @@ def test(args):
         '_type': 'linf'
     }
 
-    config_linf = dict(config_linf_6=config_linf_6, config_linf_8=config_linf_8)
+    config_linf = dict( config_linf_8 = config_linf_8)
+
 
     config_l2_1_2 = {
         'epsilon': 0.5,
-        'num_steps': 7,
+        'num_steps': 20,
         # 'step_size': 2.0 / 255,
         'step_size': 0.5 / 5,
         'random_start': True,
@@ -592,15 +598,42 @@ def test(args):
     }
     config_l2_1 = {
         'epsilon': 1.0,
-        'num_steps': 7,
+        'num_steps': 20,
         # 'step_size': 2.0 / 255,
+        # 'step_size': 1.0 / 5,
         'step_size': 1.0 / 5,
-        'random_start': True,
+        'random_start': False,
         'loss_func': 'xent',
         '_type': 'l2'
     }
 
-    config_l2 = dict(config_l2_1_2=config_l2_1_2, config_l2_60=config_l2_1)
+
+    config_l2 = dict(config_l2_1 = config_l2_1)
+
+
+    config_l1 = {
+    'epsilon': 12,
+    'num_steps': 20,
+    # 'step_size': 2.0 / 255,
+    'step_size': 2.5 * 12 / 20,
+    'random_start': True,
+    'loss_func': 'xent',
+    '_type': 'l1'
+    }
+
+    # config_l1 = {
+    # 'epsilon': 12,
+    # 'num_steps': 20,
+    # # 'step_size': 2.0 / 255,
+    # 'step_size': 0.05,
+    # 'random_start': True,
+    # 'loss_func': 'xent',
+    # '_type': 'l1'
+    # }
+
+    config_l1 = dict(config_l1 = config_l1)
+
+    print(config_l1)
     attack = 'true'
 
     if args.dataset == 'cifar':
@@ -629,16 +662,17 @@ def test(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     CE_loss = nn.CrossEntropyLoss()
-    # jiang LeNet dan du chan fen le chu lai
-    # model =  LeNet(output_classes)
-    model = ResNet18(output_classes)
-#     basic_model = basic_model.to(device)
-    # print(output_classes.device)
-    # model = MoE(basic_model, output_classes, output_classes)
-#     model = MoE_ResNet18_adv(args.num_experts, output_classes)
+
+    if args.usemodel == 'more':
+        model = MoE_ResNet18_adv(args.num_experts, output_classes)
+    elif args.usemodel == 'expert':
+        model = ResNet18(output_classes)
+    # model_loc = '../cifar_clean_train_resnet/checkpoint/ckpt_resnet18_cifar_linf_8_255.pth'
+    # model_loc = '../cifar_clean_train_resnet/checkpoint/ckpt_resnet18_cifar_l2_1_2.pth'
 
     model = model.to(device)
     utils.load_model(args.checkpoint_loc, model)
+    # utils.load_model(model_loc, model)
 
 
 
@@ -655,7 +689,7 @@ def test(args):
     # model = MoE(basic_model, args.num_experts, output_classes)
     # print(model)
     # print(type(model))
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = optim.Adam(model.parameters(), lr=args.lr)
     lr_schedule = lambda t: \
     np.interp([t], [0, args.epochs * 2 // 5, args.epochs * 4 // 5, args.epochs], [0, 0.1, 0.005, 0])[0]
 
@@ -663,15 +697,29 @@ def test(args):
         # model.train()
         # j = 0
         print('The epoch number is: ' + str(i))
+        print(config_l1)
 
         model.eval()
         correct_final_nat = 0
         correct_final_l2 = 0
         correct_final_linf = 0
 
+        # acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = testing(test_loader, device,
+        #                                                                                          model, model,
+        #                                                                                          AttackPGD, config_l2,
+        #                                                                                          config_linf, attack, \
+        #                                                                                          correct_final_nat,
+        #                                                                                          best_acc_nat,
+        #                                                                                          correct_final_l2,
+        #                                                                                          best_acc_l2,
+        #                                                                                          correct_final_linf, \
+        #                                                                                          best_acc_linf,
+        #                                                                                          best_acc_aver,
+        #                                                                                          args.checkpoint_loc)
+
         acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = testing(test_loader, device,
                                                                                                  model, model,
-                                                                                                 AttackPGD, config_l2,
+                                                                                                 AttackPGD, config_l1,
                                                                                                  config_linf, attack, \
                                                                                                  correct_final_nat,
                                                                                                  best_acc_nat,
@@ -689,8 +737,11 @@ def test(args):
 
         # acc_2, best_acc_l2 = val_adv(val_loader, device, model,  model, AttackPGD, config_l2, attack, correct_final_2, best_acc_l2 ,args.checkpoint_loc)
 
-        print('Epoch: ', i + 1, ' Done!!  l2(50, ..., 110)  Accuracy: ', acc_l2)
-        print('Epoch: ', i + 1, '  Best l2  Accuracy: ', best_acc_l2)
+        # print('Epoch: ', i + 1, ' Done!!  l2(50, ..., 110)  Accuracy: ', acc_l2)
+        # print('Epoch: ', i + 1, '  Best l2  Accuracy: ', best_acc_l2)
+
+        print('Epoch: ', i + 1, ' Done!!  l1(50, ..., 110)  Accuracy: ', acc_l2)
+        print('Epoch: ', i + 1, '  Best l1  Accuracy: ', best_acc_l2)
 
         # acc_3, best_acc_linf = val_adv(val_loader, device, model,  basic_model, AttackPGD, config_linf, attack, correct_final_3, best_acc_linf ,args.checkpoint_loc)
 
