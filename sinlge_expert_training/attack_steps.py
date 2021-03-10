@@ -211,24 +211,25 @@ class RandomStep(AttackerStep):
 # L1 threat model
 class L1Step(AttackerStep):
     """
-    Attack step for :math:`\ell_\infty` threat model. Given :math:`x_0`
-    and :math:`\epsilon`, the constraint set is given by:
-
-    .. math:: S = \{x | \|x - x_0\|_2 \leq \epsilon\}
+    implementation is based on:
+    https://advertorch.readthedocs.io/en/latest/advertorch/attacks.html#advertorch.attacks.L1PGDAttack
+    https://github.com/BorealisAI/advertorch.git
     """
     def project(self, x):
         """
         """
         diff = x - self.orig_input
-        diff = batch_l1_proj(diff.data.cpu(), self.eps)
+        diff = batch_l1_proj(diff.cpu(), self.eps)
         if self.orig_input.is_cuda:
-            diff.data = diff.data.cuda() 
+            diff = diff.cuda() 
         return ch.clamp(self.orig_input + diff, 0.0, 1.0)
 
     def step(self, x, g,l1_sparsity=None):
         """
+        modified from perturb_iterative function, in iterative_projected_gradient.py
+        from advertorch on github
         """
-        grad = g.data
+        grad = g
         abs_grad = ch.abs(grad)
         batch_size = g.size(0)
         view = abs_grad.view(batch_size, -1)
@@ -248,14 +249,12 @@ class L1Step(AttackerStep):
 
     def random_perturb(self, x):
         """
+        modified from perturb function, in iterative_projected_gradient.py
+        from advertorch on github
         """
         delta = ch.zeros_like(x)
         delta = ch.nn.Parameter(delta)
-        ini = laplace.Laplace(
-            loc=delta.new_tensor(0), scale=delta.new_tensor(1))
-        delta.data = ini.sample(delta.data.shape)
-        delta.data = normalize_by_pnorm(delta.data, p=1)
-        ray = uniform.Uniform(0, self.eps).sample()
-        delta.data *= ray
-        # delta.data = ch.clamp(x.data + delta.data, 0, 1) - x.data
-        return ch.clamp(x.data + delta.data, 0, 1)
+        # delta = rand_init_delta(delta, x, 1, self.eps, 0, 1)
+        delta = rand_init_delta(delta=delta, x=x, ord=1, eps=self.eps, clip_min=0.0, clip_max=1.0)
+        # delta = ch.clamp(x + delta, min=self.clip_min, max=self.clip_max) - x
+        return ch.clamp(x + delta, 0, 1)
