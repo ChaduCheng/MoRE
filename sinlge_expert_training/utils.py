@@ -99,7 +99,7 @@ def get_transformation(dataset):
         transform = {'train_transform': train_transform,
                     'val_transform': train_transform,
                      'test_transform': test_transform}
-    if dataset=='tinyimagenet':
+    elif dataset=='tinyimagenet':
 
         train_transform = transforms.Compose([
         transforms.RandomResizedCrop(size=64),
