@@ -52,7 +52,7 @@ def train_clean (train_loader, device,optimizer,model,CE_loss, lr_schedule, epoc
             a = a+1
 
 def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_loss,config,attack, lr_schedule, epoch_i):
-    print('doing l2 training')
+    print('doing l1 training')
     b = 0
     for images, labels in tqdm(train_loader):
             model.eval()
@@ -96,11 +96,11 @@ def train_adv(train_loader, device,optimizer, basic_model, model, AttackPGD ,CE_
 
 
 
-def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_linf, attack,\
-        correct_final_nat, best_acc_nat, correct_final_l2, best_acc_l2, correct_final_linf, best_acc_linf, checkpoint_loc):
+def val(val_loader, device, model,  basic_model, AttackPGD, config_l1, config_l2, config_linf, attack,\
+        correct_final_nat, best_acc_nat, correct_final_l1, best_acc_l1, correct_final_linf, best_acc_linf, checkpoint_loc):
     
     acc_nat = 0
-    acc_l2 = 0
+    acc_l1 = 0
     acc_linf =0
 
 
@@ -123,7 +123,7 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
     for images, labels in tqdm(val_loader):
             
             #a = a+1
-            net_attack = AttackPGD(basic_model,config_l2)
+            net_attack = AttackPGD(basic_model,config_l1)
             
             #print(net_attack)
             
@@ -139,9 +139,9 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
             pred = prediction.argmax(dim=1, keepdim=True)
             correct_2 = pred.eq(labels.view_as(pred)).sum().item()
             #correct_final.append(correct)
-            correct_final_l2 = correct_final_l2 + correct_2
+            correct_final_l1 = correct_final_l1 + correct_2
         
-    acc_l2 = correct_final_l2 / len(val_loader.dataset)
+    acc_l1 = correct_final_l1 / len(val_loader.dataset)
 
 
     
@@ -149,13 +149,13 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
     
     
 
-    if (acc_l2+acc_nat)/2.0 > best_acc_l2:
+    if (acc_l1+acc_nat)/2.0 > best_acc_l1:
             print('saving..')
             
             state = {
             'net': model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict(),
             'acc_clean': acc_nat,
-            'acc_l2': acc_l2,
+            'acc_l1': acc_l1,
             'acc_linf': acc_linf,
             #'epoch': epoch,
             }
@@ -164,10 +164,10 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
                 os.mkdir('checkpoint')
             torch.save(state, checkpoint_loc)
             best_acc_nat = acc_nat
-            best_acc_l2 = (acc_l2+acc_nat)/2.0
+            best_acc_l1 = (acc_l1+acc_nat)/2.0
             best_acc_linf = acc_linf
     
-    return acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf
+    return acc_nat, best_acc_nat, acc_l1, best_acc_l1, acc_linf, best_acc_linf
 
 
 
@@ -198,7 +198,6 @@ def train(args):
         config_linf = {
         'epsilon': 8.0  / 255 ,
         'num_steps': 7,
-        # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
         'loss_func': 'xent',
@@ -208,17 +207,24 @@ def train(args):
         config_l2 = {
         'epsilon': 1.0,
         'num_steps': 7,
-        # 'step_size': 2.0 / 255,
         'step_size': 2.5 * 1.0 / 7,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
         }
+
+        config_l1 = {
+        'epsilon': 16.0,
+        'num_steps': 7,
+        'step_size': 2.5 * 16.0 / 7,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l1'
+        }
     else:
         config_linf = {
         'epsilon': 6.0  / 255 ,
         'num_steps': 7,
-        # 'step_size': 2.0 / 255,
         'step_size': 0.01,
         'random_start': True,
         'loss_func': 'xent',
@@ -232,11 +238,19 @@ def train(args):
         'loss_func': 'xent',
         '_type': 'l2'
         }
+        config_l1 = {
+        'epsilon': 12.0,
+        'num_steps': 7,
+        'step_size': 2.5 * 12.0 / 7,
+        'random_start': True,
+        'loss_func': 'xent',
+        '_type': 'l1'
+        }
     import os
     dir = args.out_dir
     if not os.path.exists(dir):
         os.makedirs(dir)
-    args.checkpoint_loc = '{}{}_{}_{}.pt'.format(dir, args.dataset,'l2',config_l2['epsilon'])
+    args.checkpoint_loc = '{}{}_{}_{}.pt'.format(dir, args.dataset,'l1',config_l1['epsilon'])
     print(args.checkpoint_loc)
     #endregion
 
@@ -248,9 +262,9 @@ def train(args):
     if args.dataset == 'tinyimagenet':
         output_classes = 200
         
-    global best_acc_nat, best_acc_l2, best_acc_linf
+    global best_acc_nat, best_acc_l1, best_acc_linf
     best_acc_nat = 0
-    best_acc_l2 = 0
+    best_acc_l1 = 0
     best_acc_linf = 0
     
 
@@ -301,8 +315,8 @@ def train(args):
         
        # train_clean (train_loader, device,optimizer,model,CE_loss)
         
-        train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_l2, attack, lr_schedule, i)
-                
+        train_adv(train_loader, device, optimizer, model, model, AttackPGD ,CE_loss,config_l1, attack, lr_schedule, i)
+            
         #train_adv(train_loader, device, optimizer, basic_model, model, AttackPGD ,CE_loss,config_linf, attack)
         
         
@@ -310,13 +324,13 @@ def train(args):
 
         model.eval()
         correct_final_nat = 0
-        correct_final_l2 = 0
+        correct_final_l1 = 0
         correct_final_linf = 0
 
         
         
-        acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf = val(test_loader, device, model,  model, AttackPGD, config_l2, config_linf, attack,\
-        correct_final_nat, best_acc_nat, correct_final_l2, best_acc_l2, correct_final_linf,\
+        acc_nat, best_acc_nat, acc_l1, best_acc_l1, acc_linf, best_acc_linf = val(test_loader, device, model,  model, AttackPGD,config_l1, config_l2, config_linf, attack,\
+        correct_final_nat, best_acc_nat, correct_final_l1, best_acc_l1, correct_final_linf,\
             best_acc_linf, args.checkpoint_loc)
         
         # acc_nat, best_acc_nat = val_clean(val_loader, device, model, correct_final_nat, best_acc_nat, args.checkpoint_loc)
@@ -329,8 +343,8 @@ def train(args):
         
         #acc_2, best_acc_l2 = val_adv(val_loader, device, model,  model, AttackPGD, config_l2, attack, correct_final_2, best_acc_l2 ,args.checkpoint_loc)
         
-        print('Epoch: ', i+1, ' Done!!  l2  Accuracy: ', acc_l2)
-        print('Epoch: ', i+1, '  Best l2  Accuracy: ', best_acc_l2)         
+        print('Epoch: ', i+1, ' Done!!  l1  Accuracy: ', acc_l1)
+        print('Epoch: ', i+1, '  Best l1  Accuracy: ', best_acc_l1)         
         
         #acc_3, best_acc_linf = val_adv(val_loader, device, model,  model, AttackPGD, config_linf, attack, correct_final_3, best_acc_linf ,args.checkpoint_loc)
 

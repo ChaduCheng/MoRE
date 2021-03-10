@@ -6,7 +6,7 @@ Created on Tue Aug 11 19:23:17 2020
 @author: chad
 """
 
-from attack_steps import L2Step, LinfStep
+from attack_steps import L1Step, L2Step, LinfStep
 import torch
 import torch.nn as nn
 # import numpy as np
@@ -72,6 +72,8 @@ class AttackPGD(nn.Module):  # change here to build l_2 and l_inf
             step = L2Step(eps=self.epsilon, orig_input=inputs, step_size=self.step_size) 
         elif self._type =='linf':
             step = LinfStep(eps=self.epsilon, orig_input=inputs, step_size=self.step_size)
+        elif self._type =='l1':
+            step = L1Step(eps=self.epsilon, orig_input=inputs, step_size=self.step_size)
         else:
             NotImplementedError 
         x = inputs.clone().detach().requires_grad_(True)

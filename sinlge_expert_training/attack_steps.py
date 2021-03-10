@@ -11,7 +11,10 @@ import or edit this module and can just think of it as internal.
 """
 
 import torch as ch
- 
+import numpy as np
+from utils_l1 import *
+from torch.distributions import laplace
+from torch.distributions import uniform
 class AttackerStep:
     '''
     Generic class for attacker steps, under perturbation constraints
@@ -204,3 +207,55 @@ class RandomStep(AttackerStep):
         """
         """
         return x
+
+# L1 threat model
+class L1Step(AttackerStep):
+    """
+    Attack step for :math:`\ell_\infty` threat model. Given :math:`x_0`
+    and :math:`\epsilon`, the constraint set is given by:
+
+    .. math:: S = \{x | \|x - x_0\|_2 \leq \epsilon\}
+    """
+    def project(self, x):
+        """
+        """
+        diff = x - self.orig_input
+        diff = batch_l1_proj(diff.data.cpu(), self.eps)
+        if self.orig_input.is_cuda:
+            diff.data = diff.data.cuda() 
+        return ch.clamp(self.orig_input + diff, 0.0, 1.0)
+
+    def step(self, x, g,l1_sparsity=None):
+        """
+        """
+        grad = g.data
+        abs_grad = ch.abs(grad)
+        batch_size = g.size(0)
+        view = abs_grad.view(batch_size, -1)
+        view_size = view.size(1)
+        if l1_sparsity is None:
+                vals, idx = view.topk(1)
+        else:
+            vals, idx = view.topk(int(np.round((1 - l1_sparsity) * view_size)))
+        out = ch.zeros_like(view).scatter_(1, idx, vals)
+        out = out.view_as(grad)
+        grad = grad.sign() * (out > 0).float()
+        
+        grad = normalize_by_pnorm(grad, p=1)
+
+
+        return x + grad * self.step_size
+
+    def random_perturb(self, x):
+        """
+        """
+        delta = ch.zeros_like(x)
+        delta = ch.nn.Parameter(delta)
+        ini = laplace.Laplace(
+            loc=delta.new_tensor(0), scale=delta.new_tensor(1))
+        delta.data = ini.sample(delta.data.shape)
+        delta.data = normalize_by_pnorm(delta.data, p=1)
+        ray = uniform.Uniform(0, self.eps).sample()
+        delta.data *= ray
+        # delta.data = ch.clamp(x.data + delta.data, 0, 1) - x.data
+        return ch.clamp(x.data + delta.data, 0, 1)

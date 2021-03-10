@@ -256,7 +256,7 @@ def train(args):
     dir = args.out_dir
     if not os.path.exists(dir):
         os.makedirs(dir)
-    args.checkpoint_loc = '{}{}_{}.pt'.format(dir,'linf',int(config_linf['epsilon']*255))
+    args.checkpoint_loc = '{}{}_{}_{}.pt'.format(dir, args.dataset,'linf',int(config_linf['epsilon']*255))
     print(args.checkpoint_loc)
     #endregion
 
