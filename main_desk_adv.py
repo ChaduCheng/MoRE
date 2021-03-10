@@ -19,21 +19,25 @@ def get_args():
     # parser.add_argument('--training', type=bool, default=True)
     # parser.add_argument('--testing', type=bool, default=False)
     args = parser.parse_args()
-    args.epochs = 100
+    args.epochs = 1    # epoch =1 when doing testing
     args.dataset = 'cifar'
-    args.batch_size = 100
+    args.batch_size = 128
     args.train_split = 0.8 
     args.lr = 0.1
     args.gpu_ids = '0'
-    args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4adv_true.pth'
+    args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4adv_true.pth'   # training phase:  save directory ;  testing pahse: testing model dir.
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4nat.pth'
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4adv_adaptive.pth'
     #args.checkpoint_loc = './trained_model/ckptl2_alex_cifar_50.pth'
     args.num_experts = 5
     args.training = True
     args.testing = False
-    # args.tr       aining = False
-    # args.testing = True
+    #args.norm = 'inf'   ## deep fool
+    #args.epsilon = 8/255 ##deep fool 
+    # args.norm = '2'   ## deepfool
+    # args.epsilon = 1.0  ##deepfool
+    args.usemodel = 'expert'   # expert: single expert;  more: MoRE systems
+    args.seed = 1
     return args
 
 def main():
