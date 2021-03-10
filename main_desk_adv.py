@@ -29,7 +29,7 @@ def get_args():
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4nat.pth'
     #args.checkpoint_loc = './checkpoint/ckptMoE_resnet_cifar_clean+4adv_adaptive.pth'
     #args.checkpoint_loc = './trained_model/ckptl2_alex_cifar_50.pth'
-    args.num_experts = 5
+    args.num_experts = 5 # useless when do expert trainin and testing
     args.training = True
     args.testing = False
     #args.norm = 'inf'   ## deep fool
