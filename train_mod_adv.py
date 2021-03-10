@@ -611,7 +611,7 @@ def test(args):
     config_l2 = dict(config_l2_1 = config_l2_1)
 
 
-    config_l1 = {
+    config_l1 = {    ## l1 config
     'epsilon': 12,
     'num_steps': 20,
     # 'step_size': 2.0 / 255,
@@ -641,7 +641,7 @@ def test(args):
 
     global best_acc_nat, best_acc_l2, best_acc_linf
     best_acc_nat = 0
-    best_acc_l2 = []
+    best_acc_l1 = []
     best_acc_linf = []
     best_acc_aver = 0
 
@@ -701,7 +701,7 @@ def test(args):
 
         model.eval()
         correct_final_nat = 0
-        correct_final_l2 = 0
+        correct_final_l1 = 0
         correct_final_linf = 0
 
         # acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = testing(test_loader, device,
@@ -717,14 +717,14 @@ def test(args):
         #                                                                                          best_acc_aver,
         #                                                                                          args.checkpoint_loc)
 
-        acc_nat, best_acc_nat, acc_l2, best_acc_l2, acc_linf, best_acc_linf, best_acc_aver = testing(test_loader, device,
+        acc_nat, best_acc_nat, acc_l1, best_acc_l1, acc_linf, best_acc_linf, best_acc_aver = testing(test_loader, device,
                                                                                                  model, model,
                                                                                                  AttackPGD, config_l1,
                                                                                                  config_linf, attack, \
                                                                                                  correct_final_nat,
                                                                                                  best_acc_nat,
-                                                                                                 correct_final_l2,
-                                                                                                 best_acc_l2,
+                                                                                                 correct_final_l1,
+                                                                                                 best_acc_l1,
                                                                                                  correct_final_linf, \
                                                                                                  best_acc_linf,
                                                                                                  best_acc_aver,
@@ -740,8 +740,8 @@ def test(args):
         # print('Epoch: ', i + 1, ' Done!!  l2(50, ..., 110)  Accuracy: ', acc_l2)
         # print('Epoch: ', i + 1, '  Best l2  Accuracy: ', best_acc_l2)
 
-        print('Epoch: ', i + 1, ' Done!!  l1(50, ..., 110)  Accuracy: ', acc_l2)
-        print('Epoch: ', i + 1, '  Best l1  Accuracy: ', best_acc_l2)
+        print('Epoch: ', i + 1, ' Done!!  l1(50, ..., 110)  Accuracy: ', acc_l1)
+        print('Epoch: ', i + 1, '  Best l1  Accuracy: ', best_acc_l1)
 
         # acc_3, best_acc_linf = val_adv(val_loader, device, model,  basic_model, AttackPGD, config_linf, attack, correct_final_3, best_acc_linf ,args.checkpoint_loc)
 
