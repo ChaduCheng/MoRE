@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser
 #from testing import validation
 from train_mod_fog_ul import train
-from tests import test
+# from tests import test
 
 
 def get_args():
@@ -27,8 +27,8 @@ def get_args():
     args.checkpoint_loc = './checkpoint/ckpt_resnet18_cifar_fog_t_2.5_light_0.8_at_change.pth'
     #args.checkpoint_loc = './trained_model/ckptl2_alex_cifar_50.pth'
     args.num_experts = 3
-    args.training = True
-    args.testing = False
+#     args.training = True
+#     args.testing = False
     # args.training = False
     # args.testing = True
     return args
@@ -42,11 +42,11 @@ def main():
     #     if id >= 0:
     #         args.gpu_ids.append(id)
     
-    if args.training:
-        print(args.checkpoint_loc)
-        train(args)
-    if args.testing:
-        test(args)
+#     if args.training:
+    print(args.checkpoint_loc)
+    train(args)
+#     if args.testing:
+#         test(args)
 
 
 if __name__ == '__main__':
