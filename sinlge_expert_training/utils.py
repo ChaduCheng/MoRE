@@ -24,15 +24,12 @@ def get_dataset(dataset ,transform = None, train_split=0.8):
         if transform == None:
             print('Specify a transformation function')
         
-        training_data = datasets.CIFAR10('./cifar', train=True, transform = transform['train_transform'], download=True)
-        num_training_imgs = int(len(training_data) * train_split)
-        torch.manual_seed(0)
-        train_data, val_data = torch.utils.data.random_split(training_data, [num_training_imgs, len(training_data) - num_training_imgs])
+        train_data = datasets.CIFAR10('./cifar', train=True, transform = transform['train_transform'], download=True)
+    
 
         test_data = datasets.CIFAR10('./cifar', train=False, transform = transform['test_transform'], download=True)
 
         return {'train_data': train_data,
-                'val_data': val_data,
                 'test_data': test_data}
     if dataset == 'tinyimagenet':
         import tiny_imagenet

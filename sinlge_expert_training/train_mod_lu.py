@@ -182,7 +182,7 @@ def val(val_loader, device, model,  basic_model, AttackPGD, config_l2, config_li
 def train(args):
     
     config_linf = {
-    'epsilon': 6.0  / 255 ,
+    'epsilon': 8.0  / 255 ,
     #'epsilon': 0.314,
     'num_steps': 7,
     'step_size': 0.01,
@@ -195,7 +195,7 @@ def train(args):
         'epsilon': 1.0,
         'num_steps': 7,
         # 'step_size': 2.0 / 255,
-        'step_size': 2.5 * 1.0 / 7,
+        'step_size': 1.0/5,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'

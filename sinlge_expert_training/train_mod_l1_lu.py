@@ -207,7 +207,7 @@ def train(args):
         config_l2 = {
         'epsilon': 1.0,
         'num_steps': 7,
-        'step_size': 2.5 * 1.0 / 7,
+        'step_size': 1.0/5,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
@@ -233,7 +233,7 @@ def train(args):
         config_l2 = {
         'epsilon': 0.5,
         'num_steps': 7,
-        'step_size': 2.5 * 0.5 / 7,
+        'step_size': 0.5/5,
         'random_start': True,
         'loss_func': 'xent',
         '_type': 'l2'
