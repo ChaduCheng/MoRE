@@ -525,7 +525,9 @@ def train(args):
             # loss_rt = train_rt(images, labels, device, optimizer, model, CE_loss, lr_schedule, transform_rt)
 
 
+            
             # ensemble_train(loss_clean, loss_l2, loss_linf, loss_fog, loss_snow, size_train, b, lr_schedule, optimizer, i)
+            model.train()
             ensemble_train_adv(loss_l1, loss_l2, loss_linf, size_train, b, lr_schedule, optimizer, i)
 
             b = b+1
