@@ -19,7 +19,6 @@ from torch import optim
 import torch.backends.cudnn as cudnn
 
 import utils
-from model_adv import AlexNet, MoE_alexnet
 from model_adv_att import AttackPGD
 from model_resnet import *
 import string
