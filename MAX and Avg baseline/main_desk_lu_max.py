@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser
 #from testing import validation
-from train_mod_lu_max_change import train
+from train_mod_lu_max import train
 # from tests import test
 
 
