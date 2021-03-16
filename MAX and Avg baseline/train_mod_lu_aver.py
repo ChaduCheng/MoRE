@@ -512,22 +512,24 @@ def train(args):
 
 
 
-            # loss_fog = train_fog(images, labels, device, optimizer, model, CE_loss, config_fog, lr_schedule, i)
-            # #print('after fog training weights(final):', weights_fog, 'using time:', (etime_fog - stime_fog))
-            #
-            #
-            #
-            # loss_snow = train_snow(images, labels, device, optimizer, model, CE_loss, config_snow, lr_schedule, i)
-            #
-            #
-            #
-            # loss_rt = train_rt(images, labels, device, optimizer, model, CE_loss, lr_schedule, transform_rt)
+            loss_fog = train_fog(images, labels, device, optimizer, model, CE_loss, config_fog, lr_schedule, i)
+            #print('after fog training weights(final):', weights_fog, 'using time:', (etime_fog - stime_fog))
+            
+            
+            
+            loss_snow = train_snow(images, labels, device, optimizer, model, CE_loss, config_snow, lr_schedule, i)
+            
+            
+            
+            loss_rt = train_rt(images, labels, device, optimizer, model, CE_loss, lr_schedule, transform_rt)
 
 
             
             # ensemble_train(loss_clean, loss_l2, loss_linf, loss_fog, loss_snow, size_train, b, lr_schedule, optimizer, i)
             model.train()
-            ensemble_train_adv(loss_l1, loss_l2, loss_linf, size_train, b, lr_schedule, optimizer, i)
+#             ensemble_train_adv(loss_l1, loss_l2, loss_linf, size_train, b, lr_schedule, optimizer, i)
+            ensemble_train(loss_l1, loss_l2, loss_linf, loss_fog, loss_snow, loss_rt, size_train, b, lr_schedule, optimizer, i)
+
 
             b = b+1
             # if b == 1:
@@ -554,57 +556,57 @@ def train(args):
 
         acc_nat_1, acc_l1, acc_l2, acc_linf  = val_adv(test_loader, device, model, model, AttackPGD, config_l1, config_l2, config_linf, attack, correct_final_nat_1, correct_final_l1, correct_final_l2,  correct_final_linf,  args.checkpoint_loc)
 
-        # acc_nat_2, acc_fog, acc_snow, acc_rt = val_nat(test_loader, device, model, correct_final_nat_2, correct_final_fog, correct_final_snow, correct_final_rt, args.checkpoint_loc, config_fog, config_snow, transform_rt)
+        acc_nat_2, acc_fog, acc_snow, acc_rt = val_nat(test_loader, device, model, correct_final_nat_2, correct_final_fog, correct_final_snow, correct_final_rt, args.checkpoint_loc, config_fog, config_snow, transform_rt)
 
-        # if (acc_nat_1 + acc_nat_2 + sum(acc_l2) + sum(acc_l2) + sum(acc_linf) + sum(acc_fog) + sum(acc_snow) + sum(acc_rt)) / 8 > best_acc_aver:
-        #     print('saving..')
-        #
-        #     state = {
-        #         'net': model.state_dict(),
-        #         'acc_clean_1': acc_nat_1,
-        #         'acc_clean_2': acc_nat_2,
-        #         'acc_l1': acc_l1,
-        #         'acc_l2': acc_l2,
-        #         'acc_linf': acc_linf,
-        #         'acc_fog': acc_fog,
-        #         'acc_snow': acc_snow,
-        #         'acc_rt': acc_rt,
-        #     }
-        #
-        #     if not os.path.isdir('checkpoint'):
-        #         os.mkdir('checkpoint')
-        #     torch.save(state, args.checkpoint_loc)
-        #     best_acc_nat_1 = acc_nat_1
-        #     best_acc_nat_2 = acc_nat_2
-        #     best_acc_l1 = acc_l1
-        #     best_acc_l2 = acc_l2
-        #     best_acc_linf = acc_linf
-        #     best_acc_fog = acc_fog
-        #     best_acc_snow = acc_snow
-        #     best_acc_rt = acc_rt
-        #     best_acc_aver = (best_acc_nat_1 + best_acc_nat_2 + sum(best_acc_l1) + sum(best_acc_l2) + sum(best_acc_linf) \
-        #                      + sum(best_acc_fog) + sum(best_acc_snow) + sum(best_acc_rt)) / 8
-
-        if (acc_nat_1 + sum(acc_l1) + sum(acc_l2) + sum(acc_linf) ) / 4 > best_acc_aver:
+        if (acc_nat_1 + acc_nat_2 + sum(acc_l2) + sum(acc_l2) + sum(acc_linf) + sum(acc_fog) + sum(acc_snow) + sum(acc_rt)) / 8 > best_acc_aver:
             print('saving..')
-
+        
             state = {
                 'net': model.state_dict(),
                 'acc_clean_1': acc_nat_1,
+                'acc_clean_2': acc_nat_2,
                 'acc_l1': acc_l1,
                 'acc_l2': acc_l2,
                 'acc_linf': acc_linf,
-                # 'epoch': epoch,
+                'acc_fog': acc_fog,
+                'acc_snow': acc_snow,
+                'acc_rt': acc_rt,
             }
-
+        
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
             torch.save(state, args.checkpoint_loc)
             best_acc_nat_1 = acc_nat_1
+            best_acc_nat_2 = acc_nat_2
             best_acc_l1 = acc_l1
             best_acc_l2 = acc_l2
             best_acc_linf = acc_linf
-            best_acc_aver = (best_acc_nat_1 + sum(best_acc_l1) +  sum(best_acc_l2) + sum(best_acc_linf)) / 4
+            best_acc_fog = acc_fog
+            best_acc_snow = acc_snow
+            best_acc_rt = acc_rt
+            best_acc_aver = (best_acc_nat_1 + best_acc_nat_2 + sum(best_acc_l1) + sum(best_acc_l2) + sum(best_acc_linf) \
+                             + sum(best_acc_fog) + sum(best_acc_snow) + sum(best_acc_rt)) / 8
+
+#         if (acc_nat_1 + sum(acc_l1) + sum(acc_l2) + sum(acc_linf) ) / 4 > best_acc_aver:
+#             print('saving..')
+
+#             state = {
+#                 'net': model.state_dict(),
+#                 'acc_clean_1': acc_nat_1,
+#                 'acc_l1': acc_l1,
+#                 'acc_l2': acc_l2,
+#                 'acc_linf': acc_linf,
+#                 # 'epoch': epoch,
+#             }
+
+#             if not os.path.isdir('checkpoint'):
+#                 os.mkdir('checkpoint')
+#             torch.save(state, args.checkpoint_loc)
+#             best_acc_nat_1 = acc_nat_1
+#             best_acc_l1 = acc_l1
+#             best_acc_l2 = acc_l2
+#             best_acc_linf = acc_linf
+#             best_acc_aver = (best_acc_nat_1 + sum(best_acc_l1) +  sum(best_acc_l2) + sum(best_acc_linf)) / 4
 
         # if (acc_nat_2 + sum(acc_fog) + sum(acc_snow)) / 5 > best_acc_aver:
         #     print('saving..')
@@ -633,8 +635,8 @@ def train(args):
         print('Epoch: ', i + 1, ' Done!!  Natural  Accuracy: ', acc_nat_1)
         print('Epoch: ', i + 1, '  Best Natural  Accuracy: ', best_acc_nat_1)
 
-        # print('Epoch: ', i + 1, ' Done!!  Natural  Accuracy: ', acc_nat_2)
-        # print('Epoch: ', i + 1, '  Best Natural  Accuracy: ', best_acc_nat_2)
+        print('Epoch: ', i + 1, ' Done!!  Natural  Accuracy: ', acc_nat_2)
+        print('Epoch: ', i + 1, '  Best Natural  Accuracy: ', best_acc_nat_2)
 
         print('Epoch: ', i + 1, ' Done!!  l1(50, ..., 110)  Accuracy: ', acc_l1)
         print('Epoch: ', i + 1, '  Best l1  Accuracy: ', best_acc_l1)
@@ -645,15 +647,15 @@ def train(args):
         print('Epoch: ', i + 1, ' Done!!  l_inf(5, ..., 11)  Accuracy: ', acc_linf)
         print('Epoch: ', i + 1, '  Best l_inf  Accuracy: ', best_acc_linf)
 
-        # print('Epoch: ', i + 1, ' Done!!  fog  Accuracy: ', acc_fog)
-        # print('Epoch: ', i + 1, '  Best fog  Accuracy: ', best_acc_fog)
-        #
-        # print('Epoch: ', i + 1, ' Done!!  snow  Accuracy: ', acc_snow)
-        # print('Epoch: ', i + 1, '  Best snow  Accuracy: ', best_acc_snow)
-        #
-        #
-        # print('Epoch: ', i + 1, ' Done!!  rt  Accuracy: ', acc_rt)
-        # print('Epoch: ', i + 1, '  Best rt  Accuracy: ', best_acc_rt)
+        print('Epoch: ', i + 1, ' Done!!  fog  Accuracy: ', acc_fog)
+        print('Epoch: ', i + 1, '  Best fog  Accuracy: ', best_acc_fog)
+        
+        print('Epoch: ', i + 1, ' Done!!  snow  Accuracy: ', acc_snow)
+        print('Epoch: ', i + 1, '  Best snow  Accuracy: ', best_acc_snow)
+        
+        
+        print('Epoch: ', i + 1, ' Done!!  rt  Accuracy: ', acc_rt)
+        print('Epoch: ', i + 1, '  Best rt  Accuracy: ', best_acc_rt)
 
         # print('Epoch: ', i+1, ' Done!!    Loss: ', loss)
 
